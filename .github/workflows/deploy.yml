@@ -40,11 +40,11 @@ jobs:
           OWNER_LOGIN: ${{ github.event.repository.owner.login }}
         run: |
           if [ "$REPO_NAME" = "$OWNER_LOGIN.github.io" ]; then
-            echo "BASE_PATH=/" >> "$GITHUB_ENV"
+            BASE_PATH="/"
           else
-            echo "BASE_PATH=/$REPO_NAME/" >> "$GITHUB_ENV"
+            BASE_PATH="/$REPO_NAME/"
           fi
-          npm run build
+          BASE_PATH="$BASE_PATH" npm run build
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
