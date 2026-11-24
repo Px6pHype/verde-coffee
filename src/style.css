@@ -515,50 +515,73 @@ h2 em {
   pointer-events: none;
 }
 
-.fallback-lid {
+.fallback-glass {
   position: absolute;
-  z-index: 2;
-  top: 0;
-  left: -9px;
-  width: 226px;
-  height: 30px;
-  border-radius: 8px 8px 13px 13px;
-  background: linear-gradient(#f2f1e9 0 45%, #d3d5cc 46% 65%, #eeeee6 66%);
-}
-
-.fallback-cup {
-  position: absolute;
-  top: 26px;
-  width: 206px;
-  height: 318px;
+  inset: 0;
   overflow: hidden;
-  border-radius: 7px 7px 33px 33px;
-  background: linear-gradient(90deg, #c6c9bf, #fffff8 28%, #edeee6 75%, #bec4b9);
-  clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
+  border: 1px solid rgba(23, 77, 58, 0.14);
+  border-radius: 10px 10px 32px 32px;
+  background: linear-gradient(115deg, rgba(255,255,255,.34), rgba(245,255,246,.68) 32%, rgba(226,238,227,.32) 68%, rgba(255,255,255,.22));
+  clip-path: polygon(8% 0, 92% 0, 78% 100%, 22% 100%);
 }
 
-.fallback-sleeve {
+.fallback-drink {
   position: absolute;
-  top: 94px;
-  left: -2px;
+  top: 42px;
+  right: 20px;
+  bottom: 12px;
+  left: 20px;
+  background: linear-gradient(180deg, #e3c39b 0%, #c79464 38%, #8d5a31 72%, #5b341b 100%);
+  clip-path: polygon(10% 0, 90% 0, 78% 100%, 22% 100%);
+}
+
+.fallback-band {
+  position: absolute;
+  top: 158px;
+  right: 14px;
+  left: 14px;
   display: flex;
-  width: 212px;
-  height: 115px;
-  padding-top: 30px;
+  height: 78px;
   color: var(--paper);
-  background: var(--forest);
+  background: linear-gradient(90deg, #205f45, #174d3a 55%, #1b543f);
   font-size: 35px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-align: center;
   align-items: center;
+  justify-content: center;
   flex-direction: column;
+  transform: rotate(-2deg);
 }
 
-.fallback-sleeve small {
-  margin-top: 9px;
+.fallback-band::before,
+.fallback-band::after {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(243,246,236,.5);
+  content: "";
+}
+
+.fallback-band::before { top: 0; }
+.fallback-band::after { bottom: 0; }
+
+.fallback-band small {
+  margin-top: 8px;
   font-size: 7px;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.24em;
+}
+
+.fallback-straw {
+  position: absolute;
+  top: 16px;
+  left: 52%;
+  width: 10px;
+  height: 128px;
+  background: linear-gradient(90deg, #2d6b50, #3b8261 50%, #245640);
+  border-radius: 6px;
+  transform: rotate(12deg);
 }
 
 .drag-hint {
