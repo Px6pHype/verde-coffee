@@ -233,8 +233,4 @@ const startCupScene = () => {
     });
 };
 
-if ("requestIdleCallback" in window) {
-  requestIdleCallback(startCupScene, { timeout: 500 });
-} else {
-  setTimeout(startCupScene, 150);
-}
+requestAnimationFrame(startCupScene);

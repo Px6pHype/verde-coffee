@@ -8,109 +8,166 @@ function seededRandom(seed = 42) {
   };
 }
 
-function makePaperTextures(renderer) {
-  const size = 512;
-  const colorCanvas = document.createElement("canvas");
-  const bumpCanvas = document.createElement("canvas");
-  colorCanvas.width = colorCanvas.height = size;
-  bumpCanvas.width = bumpCanvas.height = size;
-  const colorContext = colorCanvas.getContext("2d");
-  const bumpContext = bumpCanvas.getContext("2d");
-  const colorImage = colorContext.createImageData(size, size);
-  const bumpImage = bumpContext.createImageData(size, size);
-  const random = seededRandom(17);
+function makeLatteArtTexture(renderer) {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 1024;
+  const context = canvas.getContext("2d");
+  const random = seededRandom(23);
 
-  for (let index = 0; index < colorImage.data.length; index += 4) {
-    const grain = Math.floor(random() * 6);
-    const height = 126 + Math.floor(random() * 7);
-    colorImage.data[index] = 239 + grain;
-    colorImage.data[index + 1] = 240 + grain;
-    colorImage.data[index + 2] = 233 + grain;
-    colorImage.data[index + 3] = 255;
-    bumpImage.data[index] = height;
-    bumpImage.data[index + 1] = height;
-    bumpImage.data[index + 2] = height;
-    bumpImage.data[index + 3] = 255;
+  // Мягкая кремовая база
+  const base = context.createRadialGradient(512, 512, 40, 512, 512, 500);
+  base.addColorStop(0, "#faf5e8");
+  base.addColorStop(0.55, "#f2e6cf");
+  base.addColorStop(1, "#d8c2a1");
+  context.fillStyle = base;
+  context.fillRect(0, 0, 1024, 1024);
+
+  // Тонкие кофейные кольца
+  context.strokeStyle = "rgba(91,58,34,.14)";
+  context.lineWidth = 3;
+  for (let index = 0; index < 34; index += 1) {
+    context.beginPath();
+    const radius = 78 + index * 13;
+    context.arc(512, 512, radius, random() * 6.28, random() * 6.28 + 2.9);
+    context.stroke();
   }
 
-  colorContext.putImageData(colorImage, 0, 0);
-  bumpContext.putImageData(bumpImage, 0, 0);
-  const color = new THREE.CanvasTexture(colorCanvas);
-  const bump = new THREE.CanvasTexture(bumpCanvas);
-
-  for (const texture of [color, bump]) {
-    texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    texture.repeat.set(4, 5);
-    texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
-  }
-  color.colorSpace = THREE.SRGBColorSpace;
-  return { color, bump };
-}
-
-function drawLeaf(context, x, y, scale) {
+  // Лист VERDE в центре
   context.save();
-  context.translate(x, y);
-  context.scale(scale, scale);
-  context.strokeStyle = "#f7f8f0";
-  context.lineWidth = 2.6;
-  context.lineCap = "round";
-  context.lineJoin = "round";
+  context.translate(512, 512);
+  context.rotate(-0.22);
+  const leaf = context.createLinearGradient(-170, -170, 170, 170);
+  leaf.addColorStop(0, "#ffffff");
+  leaf.addColorStop(0.45, "#f7f6e9");
+  leaf.addColorStop(1, "#dff0df");
+  context.fillStyle = leaf;
   context.beginPath();
-  context.moveTo(0, 38);
-  context.bezierCurveTo(-38, 18, -26, -30, 24, -44);
-  context.bezierCurveTo(29, -9, 20, 27, 0, 38);
-  context.moveTo(-9, 51);
-  context.bezierCurveTo(-3, 16, 8, -9, 24, -34);
+  context.moveTo(0, 148);
+  context.bezierCurveTo(-148, 68, -98, -128, 116, -172);
+  context.bezierCurveTo(142, -28, 90, 104, 0, 148);
+  context.closePath();
+  context.fill();
+  context.strokeStyle = "rgba(39,90,62,.32)";
+  context.lineWidth = 10;
+  context.lineCap = "round";
+  context.beginPath();
+  context.moveTo(-12, 146);
+  context.bezierCurveTo(-8, 54, 12, -38, 92, -124);
   context.stroke();
   context.restore();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 16);
+  return texture;
 }
 
-function makeSleeveTexture(renderer, textureScale = 2) {
-  // Текстура 3–4K: координаты ниже заданы в логическом размере 2048 × 1024.
+function makeDrinkSideTexture(renderer) {
   const canvas = document.createElement("canvas");
-  canvas.width = 2048 * textureScale;
-  canvas.height = 1024 * textureScale;
-  const context = canvas.getContext("2d", { alpha: false });
-  context.scale(textureScale, textureScale);
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = "high";
+  canvas.width = 512;
+  canvas.height = 1024;
+  const context = canvas.getContext("2d");
   const random = seededRandom(71);
 
-  const base = context.createLinearGradient(0, 0, 0, 1024);
-  base.addColorStop(0, "#1c533e");
-  base.addColorStop(0.5, "#174d3a");
-  base.addColorStop(1, "#194b38");
-  context.fillStyle = base;
-  context.fillRect(0, 0, 2048, 1024);
+  const gradient = context.createLinearGradient(0, 1024, 0, 0);
+  gradient.addColorStop(0, "#5b341b");
+  gradient.addColorStop(0.34, "#8d5a31");
+  gradient.addColorStop(0.58, "#c49464");
+  gradient.addColorStop(0.78, "#e1c39b");
+  gradient.addColorStop(1, "#f4e2c6");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 512, 1024);
 
-  // Едва заметные бумажные волокна не влияют на рельеф и не искажают печать.
-  for (let index = 0; index < 21000; index += 1) {
-    const light = random() > 0.48;
-    context.fillStyle = light ? "rgba(239,246,233,.022)" : "rgba(0,22,13,.026)";
-    context.fillRect(random() * 2048, random() * 1024, random() * 1.4 + 0.25, random() * 4 + 0.5);
+  // Пузырьки и мягкие разводы молока
+  for (let index = 0; index < 1800; index += 1) {
+    const y = random() * 1024;
+    const light = random() > 0.42;
+    context.fillStyle = light
+      ? `rgba(255,246,226,${0.018 + random() * 0.025})`
+      : `rgba(54,29,12,${0.014 + random() * 0.02})`;
+    context.beginPath();
+    context.arc(random() * 512, y, random() * 5 + 0.5, 0, Math.PI * 2);
+    context.fill();
   }
 
-  // Векторная по форме печать повторяется на двух сторонах стакана.
+  context.strokeStyle = "rgba(255,244,219,.1)";
+  context.lineWidth = 4;
+  for (let index = 0; index < 17; index += 1) {
+    context.beginPath();
+    const offset = index * 62;
+    for (let x = 0; x <= 512; x += 16) {
+      const y = offset + Math.sin(x / 68 + index) * 18;
+      if (x === 0) context.moveTo(x, y);
+      else context.lineTo(x, y);
+    }
+    context.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+  return texture;
+}
+
+function makeBrandBandTexture(renderer, textureScale = 2) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 2048 * textureScale;
+  canvas.height = 512 * textureScale;
+  const context = canvas.getContext("2d", { alpha: false });
+  context.scale(textureScale, textureScale);
+  const random = seededRandom(117);
+
+  const gradient = context.createLinearGradient(0, 0, 0, 512);
+  gradient.addColorStop(0, "#205f45");
+  gradient.addColorStop(0.45, "#174d3a");
+  gradient.addColorStop(1, "#1b543f");
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, 2048, 512);
+
+  // Тонкие волокна, как у крафт-полосы
+  for (let index = 0; index < 15000; index += 1) {
+    const light = random() > 0.48;
+    context.fillStyle = light ? "rgba(238,247,232,.026)" : "rgba(0,20,12,.028)";
+    context.fillRect(random() * 2048, random() * 512, random() * 1.5 + 0.25, random() * 4 + 0.5);
+  }
+
+  // Верхняя и нижняя тонкие линии
+  context.fillStyle = "rgba(243,246,236,.54)";
+  context.fillRect(0, 0, 2048, 3);
+  context.fillRect(0, 509, 2048, 3);
+
+  // Логотип повторяется на двух сторонах
   for (const center of [512, 1536]) {
+    context.save();
+    context.translate(center, 188);
+    context.rotate(-0.12);
+    context.strokeStyle = "#f6f7ef";
+    context.lineWidth = 5;
+    context.lineCap = "round";
+    context.lineJoin = "round";
+    context.beginPath();
+    context.moveTo(0, 46);
+    context.bezierCurveTo(-56, 24, -37, -48, 78, -76);
+    context.bezierCurveTo(91, -19, 54, 52, 0, 84);
+    context.moveTo(-12, 61);
+    context.bezierCurveTo(-4, 22, 16, -18, 60, -68);
+    context.stroke();
+    context.restore();
+
     context.textAlign = "center";
-    context.textBaseline = "alphabetic";
-    drawLeaf(context, center, 311, 1.22);
-    context.fillStyle = "#fafbf4";
-    context.font = "700 112px 'Inter Variable', Arial, sans-serif";
-    context.fillText("VERDE", center, 530);
-    context.fillStyle = "rgba(250,251,244,.94)";
-    context.font = "600 20px 'Inter Variable', Arial, sans-serif";
-    context.fillText("C O F F E E   &   C A L M", center, 583);
-    context.fillStyle = "rgba(239,244,234,.72)";
-    context.font = "italic 21px 'Playfair Display Variable', Georgia, serif";
-    context.fillText("your green moment", center, 635);
+    context.fillStyle = "#fbfcf5";
+    context.font = "700 124px 'Inter Variable', Arial, sans-serif";
+    context.fillText("VERDE", center, 342);
+    context.font = "600 24px 'Inter Variable', Arial, sans-serif";
+    context.fillStyle = "rgba(250,252,245,.94)";
+    context.fillText("C O F F E E   &   C A L M", center, 396);
   }
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = THREE.RepeatWrapping;
   texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.offset.x = 0.25;
   texture.magFilter = THREE.LinearFilter;
   texture.minFilter = THREE.LinearMipmapLinearFilter;
   texture.generateMipmaps = true;
@@ -119,228 +176,256 @@ function makeSleeveTexture(renderer, textureScale = 2) {
   return texture;
 }
 
-function makeMicroBumpTexture(renderer) {
-  const canvas = document.createElement("canvas");
-  canvas.width = canvas.height = 256;
-  const context = canvas.getContext("2d");
-  const image = context.createImageData(256, 256);
-  const random = seededRandom(113);
-  for (let index = 0; index < image.data.length; index += 4) {
-    const value = 126 + Math.floor(random() * 5);
-    image.data[index] = value;
-    image.data[index + 1] = value;
-    image.data[index + 2] = value;
-    image.data[index + 3] = 255;
-  }
-  context.putImageData(image, 0, 0);
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(5, 2);
-  texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-  return texture;
+function makeGlassGeometry(segments) {
+  const profile = [
+    [0, -1.70], [0.68, -1.70], [0.73, -1.68], [0.75, -1.61],
+    [0.77, -1.48], [0.79, -1.32], [0.83, -1.14], [0.90, -0.94],
+    [0.97, -0.72], [1.02, -0.48], [1.07, -0.22], [1.10, 0.04],
+    [1.12, 0.30], [1.13, 0.56], [1.14, 0.82], [1.15, 1.08],
+    [1.16, 1.28], [1.17, 1.38], [1.18, 1.43], [1.19, 1.46],
+    [1.20, 1.48], [1.20, 1.50], [1.19, 1.51], [1.18, 1.52],
+    [1.17, 1.53], [1.16, 1.53], [1.15, 1.53], [0, 1.53],
+  ].map(([radius, height]) => new THREE.Vector2(radius, height));
+  return new THREE.LatheGeometry(profile, segments);
+}
+
+function makeDrinkGeometry(segments) {
+  const profile = [
+    [0, -1.57], [0.62, -1.57], [0.66, -1.55], [0.68, -1.49],
+    [0.70, -1.37], [0.72, -1.23], [0.76, -1.08], [0.82, -0.92],
+    [0.88, -0.74], [0.94, -0.56], [0.99, -0.38], [1.03, -0.20],
+    [1.07, -0.02], [1.10, 0.16], [1.12, 0.34], [1.14, 0.52],
+    [1.16, 0.70], [1.17, 0.88], [1.18, 1.04], [1.19, 1.14],
+    [1.20, 1.20], [1.21, 1.22], [1.22, 1.22], [1.23, 1.22],
+    [1.24, 1.22], [1.24, 1.23], [1.23, 1.23], [0, 1.23],
+  ].map(([radius, height]) => new THREE.Vector2(radius, height));
+  return new THREE.LatheGeometry(profile, segments);
 }
 
 function makeShadowTexture() {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = 512;
   const context = canvas.getContext("2d");
-  const gradient = context.createRadialGradient(256, 256, 7, 256, 256, 250);
-  gradient.addColorStop(0, "rgba(15,45,30,.38)");
-  gradient.addColorStop(0.28, "rgba(15,45,30,.22)");
-  gradient.addColorStop(0.63, "rgba(15,45,30,.075)");
-  gradient.addColorStop(1, "rgba(15,45,30,0)");
+  const gradient = context.createRadialGradient(256, 256, 8, 256, 256, 250);
+  gradient.addColorStop(0, "rgba(18,52,36,.34)");
+  gradient.addColorStop(0.32, "rgba(18,52,36,.17)");
+  gradient.addColorStop(0.67, "rgba(18,52,36,.06)");
+  gradient.addColorStop(1, "rgba(18,52,36,0)");
   context.fillStyle = gradient;
   context.fillRect(0, 0, 512, 512);
   return new THREE.CanvasTexture(canvas);
 }
 
-function makeBodyGeometry(segments) {
-  const profile = [
-    [0, -1.75], [0.71, -1.75], [0.78, -1.74], [0.82, -1.70],
-    [0.832, -1.62], [0.845, -1.49], [0.895, -0.98], [0.963, -0.35],
-    [1.03, 0.29], [1.096, 0.96], [1.137, 1.39], [1.15, 1.48],
-    [1.15, 1.505], [1.125, 1.505], [1.115, 1.45], [0, 1.44],
-  ].map(([radius, height]) => new THREE.Vector2(radius, height));
-  return new THREE.LatheGeometry(profile, segments);
-}
-
-function makeLidGeometry(segments) {
-  const profile = [
-    [0, -0.09], [1.16, -0.09], [1.215, -0.105], [1.265, -0.08],
-    [1.281, -0.045], [1.281, 0.015], [1.266, 0.047], [1.224, 0.058],
-    [1.214, 0.112], [1.195, 0.143], [1.161, 0.165], [1.145, 0.203],
-    [1.09, 0.219], [0.96, 0.219], [0.94, 0.20], [0.94, 0.174], [0, 0.174],
-  ].map(([radius, height]) => new THREE.Vector2(radius, height));
-  return new THREE.LatheGeometry(profile, segments);
+function makeIceCube(size, material) {
+  const geometry = new THREE.BoxGeometry(size, size * 0.82, size, 3, 3, 3);
+  const positions = geometry.attributes.position;
+  const random = seededRandom(211);
+  for (let index = 0; index < positions.count; index += 1) {
+    positions.setXYZ(
+      index,
+      positions.getX(index) + (random() - 0.5) * 0.016,
+      positions.getY(index) + (random() - 0.5) * 0.012,
+      positions.getZ(index) + (random() - 0.5) * 0.016,
+    );
+  }
+  geometry.computeVertexNormals();
+  return new THREE.Mesh(geometry, material);
 }
 
 export function createCupScene(container, { reducedMotion = false } = {}) {
-  // Мобильный профиль: меньше полигонов и текстур, но тот же дизайн и качество печати.
   const isMobileViewport = window.matchMedia("(max-width: 760px)").matches;
   const segments = isMobileViewport ? 112 : 192;
-  const circleSegments = isMobileViewport ? 40 : 64;
   const textureScale = isMobileViewport ? 1.5 : 2;
+
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(31, 1, 0.1, 100);
-  camera.position.set(0, 1.65, 8.9);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(0, 1.78, 8.8);
+  camera.lookAt(0, 0.06, 0);
 
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: true,
     powerPreference: isMobileViewport ? "default" : "high-performance",
   });
-  // На телефоне ограничиваем разрешение рендера ради плавных 60 FPS.
-  const pixelRatioFloor = isMobileViewport ? 1.25 : 1.5;
-  const pixelRatioCeiling = isMobileViewport ? 1.5 : 2;
-  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, pixelRatioFloor), pixelRatioCeiling));
+  renderer.setPixelRatio(Math.min(Math.max(window.devicePixelRatio || 1, 1.5), isMobileViewport ? 1.5 : 2));
   renderer.setClearColor(0x000000, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.95;
+  renderer.toneMappingExposure = 1.02;
   renderer.domElement.tabIndex = 0;
   renderer.domElement.setAttribute("role", "img");
-  renderer.domElement.setAttribute("aria-label", "Интерактивный 3D-стакан VERDE. Перетаскивайте мышью или пальцем, либо используйте стрелки на клавиатуре.");
+  renderer.domElement.setAttribute("aria-label", "Интерактивная 3D-чашка VERDE с айс-латте. Перетаскивайте мышью или пальцем, либо используйте стрелки на клавиатуре.");
   container.append(renderer.domElement);
 
-  // Студийное image-based lighting создаёт естественные блики без внешних HDR-файлов.
   const environment = new RoomEnvironment();
   const pmrem = new THREE.PMREMGenerator(renderer);
-  const environmentMap = pmrem.fromScene(environment, 0.035).texture;
+  const environmentMap = pmrem.fromScene(environment, 0.03).texture;
   scene.environment = environmentMap;
-  scene.environmentIntensity = 0.62;
+  scene.environmentIntensity = 0.68;
   environment.dispose();
   pmrem.dispose();
 
-  const paperTextures = makePaperTextures(renderer);
-  const sleeveTexture = makeSleeveTexture(renderer, textureScale);
-  const microBumpTexture = makeMicroBumpTexture(renderer);
+  const latteArtTexture = makeLatteArtTexture(renderer);
+  const drinkSideTexture = makeDrinkSideTexture(renderer);
+  const brandBandTexture = makeBrandBandTexture(renderer, textureScale);
   const shadowTexture = makeShadowTexture();
   const cup = new THREE.Group();
 
-  const paperMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0xfaf9f3,
-    map: paperTextures.color,
-    bumpMap: paperTextures.bump,
-    bumpScale: 0.007,
-    roughness: 0.88,
+  const glassMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xf5faf4,
+    roughness: 0.07,
     metalness: 0,
-    clearcoat: 0.035,
-    clearcoatRoughness: 0.8,
-    envMapIntensity: 0.65,
+    clearcoat: 1,
+    clearcoatRoughness: 0.05,
+    transparent: true,
+    opacity: 0.54,
+    envMapIntensity: 1.35,
+    side: THREE.DoubleSide,
+    depthWrite: false,
   });
-  const lidMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0xf3f3ec,
-    roughness: 0.32,
+
+  const drinkMaterial = new THREE.MeshPhysicalMaterial({
+    map: drinkSideTexture,
+    roughness: 0.28,
     metalness: 0,
-    clearcoat: 0.22,
-    clearcoatRoughness: 0.3,
-    specularIntensity: 0.55,
-    envMapIntensity: 0.9,
+    clearcoat: 0.42,
+    clearcoatRoughness: 0.24,
+    envMapIntensity: 0.62,
   });
-  const rimMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0xdcded5,
-    roughness: 0.39,
-    clearcoat: 0.12,
-    clearcoatRoughness: 0.4,
-  });
-  const sleeveMaterial = new THREE.MeshPhysicalMaterial({
-    map: sleeveTexture,
-    // Отдельная бесцветная микрофактура: логотип больше не используется как bump-map.
-    bumpMap: microBumpTexture,
-    bumpScale: 0.003,
-    roughness: 0.84,
+
+  const latteMaterial = new THREE.MeshPhysicalMaterial({
+    map: latteArtTexture,
+    roughness: 0.24,
     metalness: 0,
-    sheen: 0.09,
-    sheenRoughness: 0.9,
-    sheenColor: new THREE.Color(0x456c54),
+    clearcoat: 0.48,
+    clearcoatRoughness: 0.18,
+    envMapIntensity: 0.72,
+  });
+
+  const brandBandMaterial = new THREE.MeshPhysicalMaterial({
+    map: brandBandTexture,
+    roughness: 0.64,
+    metalness: 0,
+    clearcoat: 0.24,
+    clearcoatRoughness: 0.42,
     envMapIntensity: 0.48,
   });
 
-  const body = new THREE.Mesh(makeBodyGeometry(segments), paperMaterial);
-  cup.add(body);
+  const strawMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0x2c6a4c,
+    roughness: 0.33,
+    metalness: 0,
+    clearcoat: 0.72,
+    clearcoatRoughness: 0.18,
+    envMapIntensity: 0.86,
+  });
 
-  const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(1.079, 0.937, 1.18, segments, 4, true), sleeveMaterial);
-  sleeve.position.y = -0.18;
-  cup.add(sleeve);
+  const iceMaterial = new THREE.MeshPhysicalMaterial({
+    color: 0xe9f6ec,
+    roughness: 0.2,
+    metalness: 0,
+    transparent: true,
+    opacity: 0.55,
+    clearcoat: 0.8,
+    clearcoatRoughness: 0.14,
+    envMapIntensity: 1.05,
+  });
 
-  // Тонкие края гильзы добавляют толщину бумаги, не создавая лишних полос.
-  const sleeveTopEdge = new THREE.Mesh(new THREE.TorusGeometry(1.077, 0.008, 8, segments), sleeveMaterial);
-  sleeveTopEdge.rotation.x = Math.PI / 2;
-  sleeveTopEdge.position.y = 0.41;
-  cup.add(sleeveTopEdge);
-  const sleeveBottomEdge = new THREE.Mesh(new THREE.TorusGeometry(0.937, 0.008, 8, segments), sleeveMaterial);
-  sleeveBottomEdge.rotation.x = Math.PI / 2;
-  sleeveBottomEdge.position.y = -0.77;
-  cup.add(sleeveBottomEdge);
+  const glass = new THREE.Mesh(makeGlassGeometry(segments), glassMaterial);
+  glass.renderOrder = 3;
+  cup.add(glass);
 
-  const lid = new THREE.Mesh(makeLidGeometry(segments), lidMaterial);
-  lid.position.y = 1.535;
-  cup.add(lid);
+  const drink = new THREE.Mesh(makeDrinkGeometry(segments), drinkMaterial);
+  drink.renderOrder = 1;
+  cup.add(drink);
 
-  const lowerLidRim = new THREE.Mesh(new THREE.TorusGeometry(1.174, 0.034, 16, segments), rimMaterial);
-  lowerLidRim.rotation.x = Math.PI / 2;
-  lowerLidRim.position.y = 1.432;
-  cup.add(lowerLidRim);
+  const latteTop = new THREE.Mesh(new THREE.CircleGeometry(1.22, circleSegments(segments)), latteMaterial);
+  latteTop.rotation.x = -Math.PI / 2;
+  latteTop.position.y = 1.23;
+  latteTop.renderOrder = 2;
+  cup.add(latteTop);
 
-  const lidGroove = new THREE.Mesh(new THREE.TorusGeometry(1.112, 0.014, 12, segments), rimMaterial);
-  lidGroove.rotation.x = Math.PI / 2;
-  lidGroove.position.y = 1.695;
-  cup.add(lidGroove);
+  const brandBand = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.10, 1.00, 0.78, segments, 1, true),
+    brandBandMaterial,
+  );
+  brandBand.position.y = -0.42;
+  brandBand.renderOrder = 2;
+  cup.add(brandBand);
 
-  const innerGroove = new THREE.Mesh(new THREE.TorusGeometry(0.913, 0.012, 12, segments), rimMaterial);
-  innerGroove.rotation.x = Math.PI / 2;
-  innerGroove.position.y = 1.717;
-  cup.add(innerGroove);
+  const rim = new THREE.Mesh(
+    new THREE.TorusGeometry(1.20, 0.024, 12, segments),
+    new THREE.MeshPhysicalMaterial({
+      color: 0xdff0e2,
+      roughness: 0.16,
+      metalness: 0,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.1,
+      envMapIntensity: 1.15,
+    }),
+  );
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 1.52;
+  cup.add(rim);
 
-  const sippingHoleMaterial = new THREE.MeshStandardMaterial({ color: 0x4c574e, roughness: 0.7 });
-  const sippingHole = new THREE.Mesh(new THREE.CircleGeometry(0.16, circleSegments), sippingHoleMaterial);
-  sippingHole.rotation.x = -Math.PI / 2;
-  sippingHole.scale.set(1.52, 0.72, 1);
-  sippingHole.position.set(0, 1.729, 0.65);
-  cup.add(sippingHole);
+  const strawCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.18, 1.14, 0.16),
+    new THREE.Vector3(0.20, 1.42, 0.18),
+    new THREE.Vector3(0.31, 1.73, 0.22),
+    new THREE.Vector3(0.44, 2.03, 0.25),
+  ]);
+  const straw = new THREE.Mesh(new THREE.TubeGeometry(strawCurve, 48, 0.062, 14, false), strawMaterial);
+  straw.renderOrder = 3;
+  cup.add(straw);
+  const strawCap = new THREE.Mesh(new THREE.SphereGeometry(0.062, 18, 12), strawMaterial);
+  strawCap.position.set(0.44, 2.03, 0.25);
+  cup.add(strawCap);
 
-  const sippingRim = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.021, 12, 64), lidMaterial);
-  sippingRim.rotation.x = Math.PI / 2;
-  sippingRim.scale.set(1.52, 0.72, 1);
-  sippingRim.position.set(0, 1.744, 0.65);
-  cup.add(sippingRim);
+  const icePositions = [
+    [0.52, 1.33, 0.16, 0.26],
+    [-0.38, 1.36, 0.34, 0.24],
+    [0.14, 1.40, -0.44, 0.28],
+    [-0.18, 1.44, -0.12, 0.22],
+    [0.68, 1.45, -0.30, 0.21],
+    [-0.62, 1.47, -0.20, 0.23],
+    [0.10, 1.49, 0.51, 0.2],
+  ];
+  icePositions.forEach(([x, y, z, size], index) => {
+    const ice = makeIceCube(size, iceMaterial);
+    ice.position.set(x, y, z);
+    ice.rotation.set(index * 0.42, index * 0.58, index * 0.31);
+    ice.renderOrder = 4;
+    cup.add(ice);
+  });
 
-  const bottom = new THREE.Mesh(new THREE.TorusGeometry(0.783, 0.025, 16, segments), rimMaterial);
-  bottom.rotation.x = Math.PI / 2;
-  bottom.position.y = -1.73;
-  cup.add(bottom);
-
-  cup.rotation.set(0.055, 0.1, -0.065);
+  cup.rotation.set(0.06, 0.12, -0.05);
   scene.add(cup);
 
   const shadowMaterial = new THREE.MeshBasicMaterial({
     map: shadowTexture,
     transparent: true,
     depthWrite: false,
-    opacity: 0.82,
+    opacity: 0.72,
     toneMapped: false,
   });
-  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 3.3), shadowMaterial);
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 3.1), shadowMaterial);
   shadow.rotation.x = -Math.PI / 2;
-  shadow.position.set(0.1, -1.89, 0);
+  shadow.position.set(0.08, -1.85, 0);
   scene.add(shadow);
-  const contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(2.25, 1.45), shadowMaterial.clone());
-  contactShadow.material.opacity = 0.52;
-  contactShadow.rotation.x = -Math.PI / 2;
-  contactShadow.position.set(0, -1.882, 0.02);
-  scene.add(contactShadow);
 
-  scene.add(new THREE.HemisphereLight(0xf9fff5, 0x82917d, 0.9));
-  const keyLight = new THREE.DirectionalLight(0xfffdf5, 2.0);
+  scene.add(new THREE.HemisphereLight(0xfafff5, 0x82917d, 0.85));
+  const keyLight = new THREE.DirectionalLight(0xfffdf5, 1.85);
   keyLight.position.set(-4, 6, 5);
   scene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0xd6ead8, 0.65);
-  fillLight.position.set(4, 1.5, 3);
+  const fillLight = new THREE.DirectionalLight(0xd9ead9, 0.6);
+  fillLight.position.set(4, 1.7, 3);
   scene.add(fillLight);
-  const backLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  const backLight = new THREE.DirectionalLight(0xffffff, 0.95);
   backLight.position.set(1, 4, -4);
   scene.add(backLight);
+  const rimLight = new THREE.DirectionalLight(0xdff1dc, 0.48);
+  rimLight.position.set(-1, 2, -5);
+  scene.add(rimLight);
 
   let animationFrame = 0;
   let previousTime = performance.now();
@@ -358,7 +443,7 @@ export function createCupScene(container, { reducedMotion = false } = {}) {
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
-    cup.scale.setScalar(width < 480 ? 0.92 : 1);
+    cup.scale.setScalar(width < 480 ? 0.94 : 1);
   };
 
   const resizeObserver = new ResizeObserver(resize);
@@ -378,7 +463,7 @@ export function createCupScene(container, { reducedMotion = false } = {}) {
     const deltaX = event.clientX - previousPointer.x;
     const deltaY = event.clientY - previousPointer.y;
     targetRotation.y += deltaX * 0.012;
-    targetRotation.x = THREE.MathUtils.clamp(targetRotation.x + deltaY * 0.006, -0.45, 0.48);
+    targetRotation.x = THREE.MathUtils.clamp(targetRotation.x + deltaY * 0.006, -0.42, 0.46);
     previousPointer = { x: event.clientX, y: event.clientY };
     lastInteraction = performance.now();
   };
@@ -391,11 +476,16 @@ export function createCupScene(container, { reducedMotion = false } = {}) {
   };
 
   const onKeyDown = (event) => {
-    const directions = { ArrowLeft: [0, -0.18], ArrowRight: [0, 0.18], ArrowUp: [-0.12, 0], ArrowDown: [0.12, 0] };
+    const directions = {
+      ArrowLeft: [0, -0.18],
+      ArrowRight: [0, 0.18],
+      ArrowUp: [-0.12, 0],
+      ArrowDown: [0.12, 0],
+    };
     if (!directions[event.key]) return;
     event.preventDefault();
     const [x, y] = directions[event.key];
-    targetRotation.x = THREE.MathUtils.clamp(targetRotation.x + x, -0.45, 0.48);
+    targetRotation.x = THREE.MathUtils.clamp(targetRotation.x + x, -0.42, 0.46);
     targetRotation.y += y;
     lastInteraction = performance.now();
   };
@@ -417,14 +507,17 @@ export function createCupScene(container, { reducedMotion = false } = {}) {
     previousTime = time;
     if (!visible || document.hidden) return;
 
-    if (!reducedMotion && !dragging && time - lastInteraction > 3800) {
-      targetRotation.y += delta * 0.12;
+    if (!reducedMotion && !dragging && time - lastInteraction > 4200) {
+      targetRotation.y += delta * 0.1;
     }
 
     const easing = reducedMotion ? 1 : 1 - Math.pow(0.0005, delta);
     cup.rotation.x += (targetRotation.x - cup.rotation.x) * easing;
     cup.rotation.y += (targetRotation.y - cup.rotation.y) * easing;
-    if (!reducedMotion) cup.position.y = Math.sin(time * 0.0011) * 0.045;
+    if (!reducedMotion) {
+      cup.position.y = Math.sin(time * 0.0011) * 0.038;
+      latteTop.position.y = 1.23 + Math.sin(time * 0.0014) * 0.006;
+    }
     renderer.render(scene, camera);
   };
 
@@ -443,10 +536,9 @@ export function createCupScene(container, { reducedMotion = false } = {}) {
         materials.forEach((material) => material.dispose());
       }
     });
-    paperTextures.color.dispose();
-    paperTextures.bump.dispose();
-    sleeveTexture.dispose();
-    microBumpTexture.dispose();
+    latteArtTexture.dispose();
+    drinkSideTexture.dispose();
+    brandBandTexture.dispose();
     shadowTexture.dispose();
     environmentMap.dispose();
     renderer.dispose();
@@ -454,4 +546,8 @@ export function createCupScene(container, { reducedMotion = false } = {}) {
 
   window.addEventListener("pagehide", dispose, { once: true });
   return { dispose, renderer };
+}
+
+function circleSegments(segments) {
+  return segments < 150 ? 72 : 96;
 }
